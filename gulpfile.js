@@ -1,24 +1,6 @@
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 
-// gulp.task('default', function() {
-//     gutil.log('message')
-//     gutil.log(gutil.colors.red('error'))
-//     gutil.log(gutil.colors.green('message:') + 'some')
-// });
-
-// 压缩js
-// var uglify = require('gulp-uglify');
-// gulp.task('uglifyjs', function() {
-//     gulp.src('src/js/**/*.js')
-//         .pipe(uglify())
-//         .pipe(gulp.dest('dist/js'))
-// })
-
-// gulp.task('default', function(){
-//     gulp.watch('src/js/**/*.js', ['uglifyjs'])
-// })
-
 //格式化错误信息
 var combiner = require('stream-combiner2')
 var handleError = function(err) {
@@ -64,6 +46,18 @@ gulp.task('gulifyalljs', function () {
     combined.on('error', handleError)
 })
 gulp.watch('src/assets/js/**/*.js', ['gulifyalljs'])
+
+// 合并js文件
+var concat = require('gulp-concat')
+gulp.task('concatjs', function () {
+    var combined = combiner.obj([
+        gulp.src(['src/dist/js/a.js', 'src/dist/js/b.js']),
+        concat('ab.js'), // 合并成新的ab.js文件
+        gulp.dest('dist/js/') // 合并后的文件放到dist/js文件夹内
+    ])
+    combined.on('error', handleError)
+})
+
 //压缩css
 var minifycss = require('gulp-minify-css');
 var autoprefixer = require('gulp-autoprefixer');
@@ -100,6 +94,7 @@ gulp.task('gulifyallcss', function () {
         .pipe(gulp.dest('dist/css/'))
 })
 gulp.watch('src/assets/css/**/*.css', ['gulifyallcss'])
+
 // 编译less
 var less = require('gulp-less')
 gulp.task('compileless', function () {
@@ -142,6 +137,7 @@ gulp.task('compileallless', function () {
         combined.on('error', handleError)
 })
 gulp.watch('src/assets/less/**/*.less', ['compileallless'])
+
 // 编译sass
 var sass = require('gulp-sass');
 gulp.task('compilesass', function () {
@@ -185,6 +181,7 @@ gulp.task('compileallsass', function () {
     combined.on('error', handleError)
 })
 gulp.watch('src/assets/sass/**/*.scss', ['compileallsass'])
+
 // 压缩图片
 var imagemin = require('gulp-imagemin');
 gulp.task('compressimage', function () {
@@ -209,6 +206,7 @@ gulp.task('compressallimage', function () {
         .pipe(gulp.dest('dist/images'))
 })
 gulp.watch('src/assets/images/**/*', ['compressallimage'])
+
 // 配置copy任务
 gulp.task('watchcopy', function () {
     gulp.watch('src/assets/fonts/**/*', function (event) {
@@ -227,4 +225,37 @@ gulp.task('copy', function () {
 })
 gulp.watch('src/assets/fonts/**/*', ['copy'])
 
-gulp.task('default', ['gulifyjs', 'gulifycss', 'compileless', 'compilesass', 'compressimage', 'watchcopy']);
+// 建立虚拟服务器
+var server = require('gulp-webserver');
+gulp.task('buildserver', function() {
+    gulp.src('./src/')
+        .pipe(server({
+            livereload: true,
+            host: 'localhost',
+            port: 8080,
+            //访问的路径是否显示
+            directoryListing: {
+                enable: true,
+                path: './src/index.html' // 从哪个目录开始启动
+            },
+            //对请求进行拦截
+            // middleware: function (req, res, next) {
+            //     // req 发送的请求
+            //     // res 需要接受的相应对象
+            //     // next 指向下一步操作的指针
+            //     var urlObj = url.parse(req.url, true);
+            //     console.log(urlObj.pathname);
+            //     if (urlObj.pathname == '/data/json.json') {
+            //         //设置响应头
+            //         res.setHeader('Content-Type', 'application/json');
+            //         fs.readFile('json/data.json', 'utf-8', function (err, data) {
+            //             //将文件的数据设置为响应的数据
+            //             res.end(data);
+            //         });
+            //     }
+            //     next();
+            // }
+        }));
+})
+
+gulp.task('default', ['gulifyjs', 'gulifycss', 'compileless', 'compilesass', 'compressimage', 'watchcopy', 'buildserver']);

@@ -236,7 +236,7 @@ gulp.task('buildserver', function() {
             //访问的路径是否显示
             directoryListing: {
                 enable: true,
-                path: './src/index.html' // 从哪个目录开始启动
+                path: './src/' // 从哪个目录开始启动
             },
             //对请求进行拦截
             // middleware: function (req, res, next) {

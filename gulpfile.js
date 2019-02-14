@@ -20,7 +20,7 @@ var watchPath = require('gulp-watch-path')
 var sourcemaps = require('gulp-sourcemaps')
 gulp.task('gulifyjs', function() {
     gulp.watch('src/assets/js/**/*.js', function(event) {
-        var paths = watchPath(event, 'src/assets/', 'dist/')
+        var paths = watchPath(event, 'src/assets/js/', 'dist/js/')
         gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
         gutil.log('Dist' + paths.distPath)
         var combined = combiner.obj([
@@ -236,7 +236,7 @@ gulp.task('buildserver', function() {
             //访问的路径是否显示
             directoryListing: {
                 enable: true,
-                path: './src/' // 从哪个目录开始启动
+                path: './src/index' // 从哪个目录开始启动
             },
             //对请求进行拦截
             // middleware: function (req, res, next) {

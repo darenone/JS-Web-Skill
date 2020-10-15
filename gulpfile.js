@@ -1,261 +1,32 @@
-var gulp = require('gulp');
-var gutil = require('gulp-util');
+const gulp = require('gulp');
 
-//格式化错误信息
-var combiner = require('stream-combiner2')
-var handleError = function(err) {
-    var colors = gutil.colors;
-    // console.log(err)
-    console.log('\n')
-    gutil.log(colors.red('Error!'))
-    gutil.log('fileName: ' + colors.red(err.fileName))
-    gutil.log('lineNumber: ' + colors.red(err.lineNumber))
-    gutil.log('message: ' + err.message)
-    gutil.log('plugin: ' + colors.yellow(err.plugin))
+// 根据环境引入不同的配置文件
+let buildConfig;
+if(process.env.NODE_ENV === 'dev') {
+    buildConfig = require('./build/gulp.dev');
+    gulp.task('server', buildConfig.server); // 起一个本地服务器
+} else {
+    buildConfig = require('./build/gulp.prod');
+    gulp.task('clean', buildConfig.clean); // 清理目录
 }
 
-//压缩js
-var uglify = require('gulp-uglify');
-var watchPath = require('gulp-watch-path')
-var sourcemaps = require('gulp-sourcemaps')
-gulp.task('gulifyjs', function() {
-    gulp.watch('src/assets/js/**/*.js', function(event) {
-        var paths = watchPath(event, 'src/assets/js/', 'dist/js/')
-        gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
-        gutil.log('Dist' + paths.distPath)
-        var combined = combiner.obj([
-            gulp.src(paths.srcPath),
-            sourcemaps.init(),
-            uglify(),
-            sourcemaps.write('./'),
-            gulp.dest(paths.distDir)
-        ])
-        combined.on('error', handleError)
-    }) 
+gulp.task('html', buildConfig.html); // 打包html
+gulp.task('js', buildConfig.js); // 打包js
+gulp.task('css', buildConfig.css); // 打包css
+gulp.task('image', buildConfig.image); // 打包iamge
+gulp.task('revHtml', buildConfig.revHtml); // 打包iamge
+// gulp.task('sources', gulp.series('html', gulp.parallel('js', 'css', 'image')));
+gulp.task('sources', gulp.series(gulp.parallel('js', 'css', 'image'), 'revHtml'));
+// 监听文件变化
+gulp.task('watch', async () => {
+    gulp.watch('src/views/*', gulp.series('revHtml')); // 监听html变化
+    gulp.watch('src/js/**', gulp.series('js')); // 监听js变化
+    gulp.watch('src/css/*', gulp.series('css')); // 监听css变化
+    gulp.watch('src/images/*', gulp.series('image')); // 监听image变化
 });
 
-// 一次性压缩所有js
-gulp.task('gulifyalljs', function () {
-    var combined = combiner.obj([
-        gulp.src('src/assets/js/**/*.js'),
-        sourcemaps.init(),
-        uglify(),
-        sourcemaps.write('./'),
-        gulp.dest('dist/js/')
-    ])
-    combined.on('error', handleError)
-})
-gulp.watch('src/assets/js/**/*.js', ['gulifyalljs'])
-
-// 合并js文件
-var concat = require('gulp-concat')
-gulp.task('concatjs', function () {
-    var combined = combiner.obj([
-        gulp.src(['src/dist/js/a.js', 'src/dist/js/b.js']),
-        concat('ab.js'), // 合并成新的ab.js文件
-        gulp.dest('dist/js/') // 合并后的文件放到dist/js文件夹内
-    ])
-    combined.on('error', handleError)
-})
-
-//压缩css
-var minifycss = require('gulp-minify-css');
-var autoprefixer = require('gulp-autoprefixer');
-gulp.task('gulifycss', function() {
-    gulp.watch('src/assets/css/**/*.css', function (event) {
-        var paths = watchPath(event, 'src/assets/', 'dist/')
-        gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
-        gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
-        gutil.log('Dist ' + paths.distPath)
-        gulp.src(paths.srcPath)
-            .pipe(sourcemaps.init())
-            .pipe(autoprefixer({
-                browsers: ['last 2 versions', 'Android >= 4.0'],
-                cascade: true, // 美化属性
-                remove: true
-            }))
-            .pipe(minifycss())
-            .pipe(sourcemaps.write('./'))
-            .pipe(gulp.dest(paths.distDir))
-    })
-});
-
-// 一次性压缩所有css
-gulp.task('gulifyallcss', function () {
-    gulp.src('src/assets/css/**/*.css')
-        .pipe(sourcemaps.init())
-        .pipe(autoprefixer({
-            browsers: ['last 2 versions', 'Android >= 4.0'],
-            cascade: true, // 美化属性
-            remove: true
-        }))
-        .pipe(minifycss())
-        .pipe(sourcemaps.write('./'))
-        .pipe(gulp.dest('dist/css/'))
-})
-gulp.watch('src/assets/css/**/*.css', ['gulifyallcss'])
-
-// 编译less
-var less = require('gulp-less')
-gulp.task('compileless', function () {
-    gulp.watch('src/assets/less/**/*.less', function (event) {
-        var paths = watchPath(event, 'src/assets/less/', 'dist/css/')
-        gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
-        gutil.log('Dist ' + paths.distPath)
-        var combined = combiner.obj([
-            gulp.src(paths.srcPath),
-            sourcemaps.init(),
-            autoprefixer({
-                browsers: ['last 2 versions', 'Android >= 4.0'],
-                cascade: true, // 美化属性
-                remove: true
-            }),
-            less(),
-            minifycss(),
-            sourcemaps.write('./'),
-            gulp.dest(paths.distDir)
-        ])
-        combined.on('error', handleError)
-    })
-});
-
-// 编译所有的less文件
-gulp.task('compileallless', function () {
-        var combined = combiner.obj([
-            gulp.src('src/assets/less/**/*.less'),
-            sourcemaps.init(),
-            autoprefixer({
-                browsers: ['last 2 versions', 'Android >= 4.0'],
-                cascade: true, // 美化属性
-                remove: true
-            }),
-            less(),
-            minifycss(),
-            sourcemaps.write('./'),
-            gulp.dest('dist/css/')
-        ])
-        combined.on('error', handleError)
-})
-gulp.watch('src/assets/less/**/*.less', ['compileallless'])
-
-// 编译sass
-var sass = require('gulp-sass');
-gulp.task('compilesass', function () {
-    gulp.watch('src/assets/sass/**/*', function (event) {
-        // console.log(event)
-        var paths = watchPath(event, 'src/assets/sass/', 'dist/css/')
-        gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
-        gutil.log('Dist ' + paths.distPath)
-        var combined = combiner.obj([
-            gulp.src(paths.srcPath),
-            sourcemaps.init(),
-            autoprefixer({
-                browsers: ['last 2 versions', 'Android >= 4.0'],
-                cascade: true, // 美化属性
-                remove: true
-            }),
-            sass(),
-            minifycss(),
-            sourcemaps.write('./'),
-            gulp.dest(paths.distDir)
-        ])
-        combined.on('error', handleError)
-    })
-})
-
-// 编译所有sass
-gulp.task('compileallsass', function () {
-    var combined = combiner.obj([
-        gulp.src('src/assets/sass/**/*.scss'),
-        sourcemaps.init(),
-        autoprefixer({
-            browsers: ['last 2 versions', 'Android >= 4.0'],
-            cascade: true, // 美化属性
-            remove: true
-        }),
-        sass(),
-        minifycss(),
-        sourcemaps.write('./'),
-        gulp.dest('dist/css/')
-    ])
-    combined.on('error', handleError)
-})
-gulp.watch('src/assets/sass/**/*.scss', ['compileallsass'])
-
-// 压缩图片
-var imagemin = require('gulp-imagemin');
-gulp.task('compressimage', function () {
-    gulp.watch('src/assets/images/**/*', function (event) {
-        var paths = watchPath(event, 'src/assets/', 'dist/')
-        gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
-        gutil.log('Dist ' + paths.distPath)
-        gulp.src(paths.srcPath)
-            .pipe(imagemin({
-                progressive: true
-            }))
-            .pipe(gulp.dest(paths.distDir))
-    })
-});
-
-// 压缩所有图片
-gulp.task('compressallimage', function () {
-    gulp.src('src/assets/images/**/*')
-        .pipe(imagemin({
-            progressive: true
-        }))
-        .pipe(gulp.dest('dist/images'))
-})
-gulp.watch('src/assets/images/**/*', ['compressallimage'])
-
-// 配置copy任务
-gulp.task('watchcopy', function () {
-    gulp.watch('src/assets/fonts/**/*', function (event) {
-        var paths = watchPath(event)
-        gutil.log(gutil.colors.green(event.type) + ' ' + paths.srcPath)
-        gutil.log('Dist ' + paths.distPath)
-        gulp.src(paths.srcPath)
-            .pipe(gulp.dest(paths.distDir))
-    })
-})
-
-// copy所有
-gulp.task('copy', function () {
-    gulp.src('src/assets/fonts/**/*')
-        .pipe(gulp.dest('dist/fonts/'))
-})
-gulp.watch('src/assets/fonts/**/*', ['copy'])
-
-// 建立虚拟服务器
-var server = require('gulp-webserver');
-gulp.task('buildserver', function() {
-    gulp.src('./src/')
-        .pipe(server({
-            livereload: true,
-            host: 'localhost',
-            port: 8080,
-            //访问的路径是否显示
-            directoryListing: {
-                enable: true,
-                path: './src/index' // 从哪个目录开始启动
-            },
-            //对请求进行拦截
-            // middleware: function (req, res, next) {
-            //     // req 发送的请求
-            //     // res 需要接受的相应对象
-            //     // next 指向下一步操作的指针
-            //     var urlObj = url.parse(req.url, true);
-            //     console.log(urlObj.pathname);
-            //     if (urlObj.pathname == '/data/json.json') {
-            //         //设置响应头
-            //         res.setHeader('Content-Type', 'application/json');
-            //         fs.readFile('json/data.json', 'utf-8', function (err, data) {
-            //             //将文件的数据设置为响应的数据
-            //             res.end(data);
-            //         });
-            //     }
-            //     next();
-            // }
-        }));
-})
-
-gulp.task('default', ['gulifyjs', 'gulifycss', 'compileless', 'compilesass', 'compressimage', 'watchcopy', 'buildserver']);
+if (process.env.NODE_ENV === 'dev') {
+    gulp.task('dev', gulp.series('sources', 'server', 'watch'));
+} else {
+    gulp.task('build', gulp.series('sources'))
+}

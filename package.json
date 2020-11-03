@@ -38,7 +38,7 @@
     "gulp-uglify": "^3.0.2",
     "gulp-util": "^3.0.8",
     "http-proxy-middleware": "^1.0.6",
-    "imagemin-pngquant": "^9.0.1",
+    "imagemin-pngquant": "^9.0.1"
   },
   "dependencies": {}
 }

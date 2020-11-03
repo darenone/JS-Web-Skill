@@ -39,7 +39,7 @@
 git clone https://github.com/darenone/JS-Web-Skill.git
 
 # 进入项目
-cd codetest
+cd JS-Web-Skill
 
 # 安装依赖（在项目根目录执行下面代码）
 npm/cnpm install

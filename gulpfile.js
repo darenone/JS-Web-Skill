@@ -14,12 +14,11 @@ gulp.task('html', buildConfig.html); // 打包html
 gulp.task('js', buildConfig.js); // 打包js
 gulp.task('css', buildConfig.css); // 打包css
 gulp.task('image', buildConfig.image); // 打包iamge
-gulp.task('revHtml', buildConfig.revHtml); // 打包iamge
 // gulp.task('sources', gulp.series('html', gulp.parallel('js', 'css', 'image')));
-gulp.task('sources', gulp.series(gulp.parallel('js', 'css', 'image'), 'revHtml'));
+gulp.task('sources', gulp.series('js', 'css', 'image', 'html'));
 // 监听文件变化
 gulp.task('watch', async () => {
-    gulp.watch('src/views/*', gulp.series('revHtml')); // 监听html变化
+    gulp.watch('src/views/*', gulp.series('html')); // 监听html变化
     gulp.watch('src/js/**', gulp.series('js')); // 监听js变化
     gulp.watch('src/css/*', gulp.series('css')); // 监听css变化
     gulp.watch('src/images/*', gulp.series('image')); // 监听image变化

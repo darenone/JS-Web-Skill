@@ -34,7 +34,7 @@ async function css() {
         // .pipe(gulp.dest(dist + '/css'))
         .pipe(rev())
         .pipe(gulp.dest(dist + '/css'))
-        .pipe(rev.manifest())
+        .pipe(rev.manifest()) // CSS生成文件hash编码并生成 rev-manifest.json文件名对照映射
         .pipe(gulp.dest('rev/css'));
 }
 
@@ -45,16 +45,16 @@ async function js() {
         // .pipe(gulp.dest(dist + '/js'))
         .pipe(rev())
         .pipe(gulp.dest(dist + '/js'))
-        .pipe(rev.manifest())
+        .pipe(rev.manifest()) // js生成文件hash编码并生成 rev-manifest.json文件名对照映射
         .pipe(gulp.dest('rev/js'));
 }
-async function revHtml() {
+async function html() {
     return gulp.src(['rev/**/*.json', 'src/views/*.html'])
-        .pipe(revCollector({
+        .pipe(revCollector({ // 利用rev-manifest.json完成html中url的替换
             replaceReved: true,
             dirReplacements: {
                 // 'css': 'dist/css', // 将URL中的css替换为css,真实相同则不必写
-                'js': 'js',
+                // 'js': 'js',
                 // '//cdn': function(manifest_value) { // 如果使用了cdn可以这样写
                 //     return '//cdn' + (Math.floor(Math.random() * 9) + 1) + '.' + 'exsample.dot' + '/img/' + manifest_value;
                 // }
@@ -95,6 +95,6 @@ async function image() {
         css,
         js,
         image,
-        revHtml,
+        html,
         clean
     }

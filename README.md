@@ -13,7 +13,7 @@
     |   |-- gulp.dev.js // 开发环境配置
     |   |-- gulp.prod.js // 生成环境配置
     |-- dist // 项目打包以后生成的静态文件
-    |-- src // 朱文件
+    |-- src // 主文件
         |-- css // 存放样式
         |   |-- about.css
         |   |-- index.less
@@ -23,11 +23,11 @@
         |   |-- banner2.png
         |-- include // 存放html模板
         |   |-- base.html
-        |-- js // c存放业务逻辑代码
+        |-- js // 存放业务逻辑代码
         |   |-- about.js
         |   |-- index.js
-        |   |-- lib // 存放公共js代码或则第三方代码库
-        |       |-- tool.js // 存放的公共函数
+        |   |-- lib // 存放公共js代码或者第三方代码库
+        |       |-- tool.js // 存放公共函数
         |       |-- util.js // 存放与业务逻辑有关的公共函数
         |-- views // 视图文件 存放所有的html代码
             |-- about.html
